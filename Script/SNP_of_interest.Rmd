@@ -1,0 +1,160 @@
+---
+title: "SNP_of_interest"
+author: "clothilde de gramont"
+date: "10/06/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#1:Yield,2:NSM2,3:PMG,4:NKM2,5:NKS
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+```
+
+```{r}
+setwd("~/JRL/farmer_seeds/6_genotype")
+ load("Freq_data.RData")
+load("Tab_PVAL_HE_I.Rdata")
+load("Tab_PVAL_I.Rdata")
+load("Tab_PVAL_S_I.Rdata")
+load("Tab_PVAL_S_HE_I.Rdata")
+load("script8")
+```
+
+```{r}
+
+SNP_of_interest_freq<-as.data.frame(Tab_PVAL_S_I[5,])%>%
+  mutate(SNP=colnames(Tab_PVAL_S_I))
+  
+colnames(SNP_of_interest_freq) <- c("pvalue","SNP")  
+
+SNP_of_interest_freq<- SNP_of_interest_freq %>%
+  filter(-log10(pvalue)>4.46)
+SNP_of_interest_freq
+
+
+data_freq<-subset(Freq_data, select=SNP_of_interest_freq[,2])
+metadata<- map %>%
+  filter(SNP %in% colnames(data_freq))
+
+
+for (i in 1:ncol(data_freq)){
+  #pdf(paste(paste0(colnames(data_freq)[i],"_F_NKS"), "pdf", sep = ".")) 
+  
+ p<- ggplot(data_freq, aes(x=data_freq[,i], y=Freq_data$mean_N_kernel))+
+         geom_point()+
+  ggtitle(paste("Allelic frequency",colnames(data_freq[i])))+
+    xlab(paste("F_",colnames(data_HE[i])))+
+    ylab("NKS")+
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+ print(p)
+#dev.off()
+}
+
+
+
+
+```
+
+```{r}
+
+SNP_of_interest_HE<-as.data.frame(Tab_PVAL_S_HE_I[3,])%>%
+  mutate(SNP=colnames(Tab_PVAL_S_HE_I))
+  
+colnames(SNP_of_interest_HE) <- c("pvalue","SNP")  
+
+SNP_of_interest_HE<- SNP_of_interest_HE %>%
+  filter(-log10(pvalue)>4.46)
+SNP_of_interest_HE
+
+data_HE<-subset(Freq_data, select=SNP_of_interest_HE[,2])
+
+metadata<- map %>%
+  filter(SNP %in% colnames(data_HE))  
+
+write.csv2(metadata,file="metadata.csv")
+p<- list()
+
+for (i in 1:ncol(data_HE)){
+  
+  p[[i]]<-ggplot(data_HE, aes_string(x=2*(data_HE[,i])*(1-data_HE[,i]), y=Freq_data$PMG))+
+         geom_point()+
+  ggtitle(paste("Allelic diversity",colnames(data_HE[i])))+
+    xlab(paste("He_",colnames(data_HE[i])))+
+    ylab("PMG")+
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+
+}
+do.call(grid.arrange,p)
+
+```
+
+
+
+```{r}
+SNP_of_interest_I_freq<-as.data.frame(Tab_PVAL_I[3,])%>%
+  mutate(SNP=colnames(Tab_PVAL_I))
+  
+colnames(SNP_of_interest_I_freq) <- c("pvalue","SNP")  
+
+
+SNP_of_interest_I_freq<- SNP_of_interest_I_freq %>%
+  filter(-log10(pvalue)>4.46)
+SNP_of_interest_I_freq
+
+data_freq_I<-subset(Freq_data, select=SNP_of_interest_I_freq[,2])
+metadata<- map %>%
+  filter(SNP %in% colnames(data_freq_I))
+
+for (i in 1:ncol(data_freq_I)){
+ # pdf(paste(paste0(colnames(data_freq_I)[i],"_F_I_PMG"), "pdf", sep = ".")) 
+  
+  graph<-ggplot(data_freq_I, aes(x=data_freq_I[,i], y=Freq_data$PMG,col=Freq_data$Hydro_condition))+
+         geom_point()+
+  ggtitle(paste("Interaction GxE",colnames(data_freq[i])))+
+    xlab(paste("F_",colnames(data_freq_I[i])))+
+    ylab("PMG")+
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)+
+    labs(col="Water regime")
+  print(graph)
+  
+#dev.off()
+}
+```
+
+```{r}
+SNP_of_interest_I_HE<-as.data.frame(Tab_PVAL_HE_I[3,])%>%
+  mutate(SNP=colnames(Tab_PVAL_HE_I))
+  
+colnames(SNP_of_interest_I_HE) <- c("pvalue","SNP")  
+
+SNP_of_interest_I_HE<- SNP_of_interest_I_HE %>%
+  filter(-log10(pvalue)>4.46)
+SNP_of_interest_I_HE
+
+data_freq_I_HE<-subset(Freq_data, select=SNP_of_interest_I_HE[,2])
+
+for (i in 1:ncol(data_freq_I_HE)){
+  #pdf(paste(paste0(colnames(data_freq_I_HE)[i],"_HE_I_PMG"), "pdf", sep = ".")) 
+  
+  graph<-ggplot(data_freq_I_HE, aes(x=2*(data_freq_I_HE[,i])*(1-data_freq_I_HE[,i]), y=Freq_data$PMG,col=Freq_data$Hydro_condition))+
+         geom_point()+
+  ggtitle("Interaction GxE")+
+    xlab(colnames(data_freq_I_HE[,i]))+
+    ylab("PMG")+
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+  print(graph)
+  
+#dev.off()
+}
+```
+
+
