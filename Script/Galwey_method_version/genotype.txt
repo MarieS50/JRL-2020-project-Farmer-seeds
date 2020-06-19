@@ -1,0 +1,13 @@
+#!/bin/sh
+#SBATCH --job-name=genotype_analysis
+#SBATCH --account=f_msa_jrl
+#SBATCH --nodes 1
+#SBATCH --ntasks 1
+#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-core=1
+#SBATCH --partition=jrl
+#SBATCH --time=10:00:00
+#SBATCH --mail-user=clothilde.boubee-de-gramont@supagro.fr
+#SBATCH --mail-type=end
+
+Rscript Galwey.R
