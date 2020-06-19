@@ -1,0 +1,220 @@
+---
+title: "Data2"
+author: "Xheke Leka"
+date: "25 maggio 2020"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+```
+
+
+```{r}
+yield_graph <- read.csv2("C:/Users/J E N N Y/Desktop/Github/farmer_seeds/2_data_yield/data_yield_plot.csv")
+
+str(yield_graph)
+
+print(yield_graph)
+```
+
+
+
+```{r}
+
+Graphic_1 = ggplot(yield_graph, aes(x= Hydro_condition, y= N_spike_m2 )) +
+  geom_boxplot()+
+                  labs(x= "Water regime", y= "the number of spike /m²")+
+                  theme_classic()
+
+Graphic_1
+
+```
+
+```{r}
+lm(N_spike_m2 ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+
+
+```{r}
+
+Graphic_2= ggplot(yield_graph, aes(x=Hydro_condition, y=mean_N_kernel))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean of the Number of kernels/spike")+
+  theme_classic()
+
+Graphic_2
+
+```
+
+```{r}
+lm(mean_N_kernel ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_3= ggplot(yield_graph, aes(x=Hydro_condition, y= mean_N_spikelet))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean of the Number of spikelet/spike")+
+  theme_classic()
+
+Graphic_3
+
+```
+
+```{r}
+lm(mean_N_spikelet ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_4= ggplot(yield_graph, aes(x=Hydro_condition, y= mean_W_kernel))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean of the Weight of kernel/spike ")+
+  theme_classic()
+
+Graphic_4
+
+```
+
+```{r}
+lm(mean_W_kernel ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_5= ggplot(yield_graph, aes(x=Hydro_condition, y= N_kernel_m2))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "Number of kernel per m²")+
+  theme_classic()
+
+Graphic_5
+
+```
+
+```{r}
+lm(N_kernel_m2 ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_6= ggplot(yield_graph, aes(x=Hydro_condition, y= PMG))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "weight of 1000 kernels of each plot")+
+  theme_classic()
+
+Graphic_6
+
+```
+
+```{r}
+lm(PMG ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_7= ggplot(yield_graph, aes(x=Hydro_condition, y= Yield_Cor))+
+  geom_boxplot()+
+  labs(x= "Water regime", y= "Yield")+
+  theme_classic()
+
+Graphic_7
+
+```
+
+```{r}
+lm(Yield_Cor ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+
+```{r}
+Graphic_8= ggplot(yield_graph, aes(x=Hydro_condition, y= mean_Fertility_rate))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean of the fertility rate")+
+  theme_classic()
+
+Graphic_8
+
+```
+
+```{r}
+lm(mean_Fertility_rate ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_9= ggplot(yield_graph, aes(x=Hydro_condition, y= mean_L_stem))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean length of the stems")+
+  theme_classic()
+
+Graphic_9
+
+```
+
+```{r}
+lm(mean_L_stem ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_10= ggplot(yield_graph, aes(x=Hydro_condition, y= mean_H_spike))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean of the height of the spikes")+
+  theme_classic()
+
+Graphic_10
+
+```
+
+```{r}
+lm(mean_H_spike ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_11= ggplot(yield_graph, aes(x=Hydro_condition, y= mean_H_plant))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "mean of the height of plant")+
+  theme_classic()
+
+Graphic_11
+
+```
+
+```{r}
+lm(mean_H_plant ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
+```{r}
+Graphic_12= ggplot(yield_graph, aes(x=Hydro_condition, y= V_H_plant))+
+  geom_boxplot()+
+  labs(x= "Hydrologic Conditions", y= "Variance of the H_plant in the 10 samples")+
+  theme_classic()
+
+Graphic_12
+
+```
+
+```{r}
+lm(V_H_plant ~ Hydro_condition, data=yield_graph)%>%
+  summary
+```
+
