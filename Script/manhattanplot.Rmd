@@ -1,0 +1,250 @@
+---
+title: "manhattan plot"
+author: "clothilde de gramont"
+date: "06/06/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+load("Tab_PVAL_S.Rdata")
+load("Tab_PVAL_S_HE.Rdata")
+load("script8.Rdata")
+```
+
+
+```{r}
+# les manhattan plot des populations en Ã©volution expÃ©rimentales
+
+library(qqman)
+```
+
+```{r}
+Tab_PVAL_S<-Tab_PVAL_S[1:12,]
+Tab_PVAL_S_HE<-Tab_PVAL_S_HE[1:12,]
+```
+
+
+```{r}
+# manhattan plot avec freq allelique
+for (i in 1:12) {
+  
+  # choisir 
+  Pval<-Tab_PVAL_S[i,map$SNP]
+  
+  # fabrication d'un fichier de position joint avec les pvalues mises dans l'ordre
+  Pval<-cbind(map,Pval)
+  
+  
+  # Manhattan plot general
+  
+
+  dim(Pval)
+
+  # Pour comprendre
+  # https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+pdf(paste(paste0(colnames(MP)[i],"_No_I_Freq"), "pdf", sep = "."))  
+  
+ manhattan(Pval, chr="Chr", bp = "Pos", snp = "SNP", 
+            p= "Pval", main=colnames(MP)[i] ,
+            cex.axis = 0.7, genomewideline =  4.55,
+            annotatePval = 0.01
+  )
+      dev.off()
+  qq(Pval$Pval, main=colnames(MP)[i])
+    
+  
+}
+
+
+```
+
+```{r}
+#_#Avec he
+for (i in 1:12) {
+  
+  # choisir 
+  Pval<-Tab_PVAL_S_HE[i,map$SNP]
+  
+  # fabrication d'un fichier de position joint avec les pvalues mises dans l'ordre
+  Pval<-cbind(map,Pval)
+  
+  
+  # Manhattan plot general
+  
+
+  dim(Pval)
+
+  # Pour comprendre
+  # https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+pdf(paste(paste0(colnames(MP)[i],"_No_I_He"), "pdf", sep = "."))  
+  
+ manhattan(Pval, chr="Chr", bp = "Pos", snp = "SNP", 
+            p= "Pval", main=colnames(MP)[i] ,
+            cex.axis = 0.7, genomewideline =  4.55,
+            annotatePval = 0.01
+  )
+      dev.off()
+  qq(Pval$Pval, main=colnames(MP)[i])
+    
+  
+}
+
+
+```
+
+#Avec interaction
+```{r}
+load("Tab_PVAL_S_I.Rdata")
+load("Tab_PVAL_S_HE_I.Rdata")
+```
+
+```{r}
+Tab_PVAL_S_I<-Tab_PVAL_S_I[1:12,]
+Tab_PVAL_S_HE_I<-Tab_PVAL_S_HE_I[1:12,]
+```
+
+
+```{r}
+# manhattan plot avec freq allelique
+for (i in 1:12) {
+  
+  # choisir 
+  Pval<-Tab_PVAL_S_I[i,map$SNP]
+  
+  # fabrication d'un fichier de position joint avec les pvalues mises dans l'ordre
+  Pval<-cbind(map,Pval)
+  
+  
+  # Manhattan plot general
+  
+
+  dim(Pval)
+
+  # Pour comprendre
+  # https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+pdf(paste(paste0(colnames(MP)[i],"_I_FREQ"), "pdf", sep = "."))  
+  
+ manhattan(Pval, chr="Chr", bp = "Pos", snp = "SNP", 
+            p= "Pval", main=colnames(MP)[i] ,
+            cex.axis = 0.7, genomewideline =  4.55,
+            annotatePval = 0.01
+  )
+      dev.off()
+  qq(Pval$Pval, main=colnames(MP)[i])
+    
+  
+}
+```
+
+```{r}
+#_#Avec he
+for (i in 1:12) {
+  
+  # choisir 
+  Pval<-Tab_PVAL_S_HE_I[i,map$SNP]
+  
+  # fabrication d'un fichier de position joint avec les pvalues mises dans l'ordre
+  Pval<-cbind(map,Pval)
+  
+  
+  # Manhattan plot general
+  
+
+  dim(Pval)
+
+  # Pour comprendre
+  # https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+pdf(paste(paste0(colnames(MP)[i],"_I_He"), "pdf", sep = "."))  
+  
+ manhattan(Pval, chr="Chr", bp = "Pos", snp = "SNP", 
+            p= "Pval", main=colnames(MP)[i] ,
+            cex.axis = 0.7, genomewideline = 4.55,
+            annotatePval = 0.01
+  )
+      dev.off()
+  qq(Pval$Pval, main=colnames(MP)[i])
+    
+  
+}
+
+```
+
+```{r}
+#T:x pvalue in the manhattan plot
+#the Tab of pvalue
+load("Tab_PVAL_I")
+load ("Tab_PVAL_HE_I")
+```
+
+```{r}
+#manhattan plot f(A) 
+for (i in 1:12) {
+  
+  # choisir 
+  Pval<-Tab_PVAL_I[i,map$SNP]
+  
+  # fabrication d'un fichier de position joint avec les pvalues mises dans l'ordre
+  Pval<-cbind(map,Pval)
+  
+  
+  # Manhattan plot general
+  
+
+  dim(Pval)
+
+  # Pour comprendre
+  # https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+pdf(paste(paste0(colnames(MP)[i],"_xT_freq"), "pdf", sep = "."))  
+  
+ manhattan(Pval, chr="Chr", bp = "Pos", snp = "SNP", 
+            p= "Pval", main=colnames(MP)[i] ,
+            cex.axis = 0.7, genomewideline = 4.55,
+            annotatePval = 0.01
+  )
+      dev.off()
+  qq(Pval$Pval, main=colnames(MP)[i])
+    
+  
+}
+```
+
+```{r}
+##manhattan plot with HE x:Tpvalues
+for (i in 1:12) {
+  
+  # choisir 
+  Pval<-Tab_PVAL_HE_I[i,map$SNP]
+  
+  # fabrication d'un fichier de position joint avec les pvalues mises dans l'ordre
+  Pval<-cbind(map,Pval)
+  
+  
+  # Manhattan plot general
+  
+
+  dim(Pval)
+
+  # Pour comprendre
+  # https://cran.r-project.org/web/packages/qqman/vignettes/qqman.html
+pdf(paste(paste0(colnames(MP)[i],"_x:T_He"), "pdf", sep = "."))  
+  
+ manhattan(Pval, chr="Chr", bp = "Pos", snp = "SNP", 
+            p= "Pval", main=colnames(MP)[i] ,
+            cex.axis = 0.7, genomewideline = 4.55,
+            annotatePval = 0.01
+  )
+      dev.off()
+  qq(Pval$Pval, main=colnames(MP)[i])
+    
+  
+}
+```
+
