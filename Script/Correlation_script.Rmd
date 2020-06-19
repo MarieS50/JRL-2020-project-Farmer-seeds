@@ -1,0 +1,394 @@
+---
+title: "Correlation"
+author: "clothilde de gramont"
+date: "25/05/2020"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+#chargement des library
+```{r message=FALSE}
+library(tidyverse)
+library(Hmisc)
+library(readr)
+library(corrplot)
+library(viridis)
+library(ggplot2)
+library(data.table)
+library(stats)
+library(car)
+
+```
+
+# Chargement du jeu de donnée
+```{r}
+data_yield <- read.csv2("data_yield_plot.csv")
+
+```
+
+# Distribution of the traits
+
+```{r}
+data_yield %>%
+  select(-plot_ident,-Bloc)%>%
+  melt(.) %>%
+  ggplot(., aes(x=value,label=variable)) +
+  geom_histogram() +
+  facet_wrap(. ~ variable,scales="free_x")
+```
+
+
+
+# Boxplot according hydro_condition
+
+```{r}
+data_yield%>%
+  select(-plot_ident,-Bloc)%>%
+  melt(.) %>%
+  ggplot(., aes(x=Hydro_condition,y= value,label=variable)) +
+  geom_boxplot() +
+  facet_wrap(. ~ variable,scales="free_y")
+```
+
+
+
+# Relation between the Yield and the other parameters
+
+## Correlation matrix
+```{r}
+#1=drought, 2=rainy
+data_cor<-data_yield%>%
+  select(-Bloc,-plot_ident, -mean_N_spikelet, - mean_W_kernel, -mean_Fertility_rate, -mean_L_stem, - mean_H_spike, -V_H_plant, -mean_H_plant)%>%
+  mutate(Hydro_condition = ifelse(Hydro_condition=="R", 2, 1))%>%
+  #filter(Hydro_condition==2)%>%
+  #select(-Hydro_condition)%>%
+  drop_na()
+MCOR<-cor(data_cor)
+
+corrplot(MCOR,type="upper",method="number", tl.cex=0.7,tl.col="black",number.cex=0.8, title = "Matrix of correlation in rainy condition")
+rcorr(as.matrix(data_cor), type=c("pearson"))
+cor.test(data_cor$Yield_Cor,data_cor$PMG, method="pearson")
+
+```
+
+# Anova step by step
+Le pbm de l'anova séparé que j'ai fais plus haut et que le modèle est plus stricte. En effet dans les résidus de chaque anova simple contient les autres facteurs qui peuvent être bien plus significatif. Et donc on peut observer une absence de significativité du PMG par exemple tout simplement parce que dans les residus on a le N_spike_m² qui est vachement significatif. Donc il est necessaire de faire l'anova avec l'ensemble des facteurs.
+## Function graphique en regression
+```{r}
+graph<- function(x){
+  graph<-ggplot(data_yield, aes(x=x, y=Yield_Cor,col=Hydro_condition))+
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+  return(graph)
+}
+
+res<-function(x){
+res<-aov(Yield_Cor ~ Hydro_condition + x + Hydro_condition*x, data=data_yield)%>%
+  summary
+  return(res)  }
+```
+
+<!--  *What is the relation between the yield and the main components of the yield? That is the Yield and the number of spikes / m2 (N_spike_m2),number of grains / spike (mean_N_kernel), number of grains / m2 (N_kernel_m2) and thousand kernel weight (PMG).* -->
+
+<!-- # Analysis of the yield components -->
+<!-- ### Is there an impact of the number of spike/m² on the yield according both Hydrological condition? Yield~N_spike -->
+<!-- ```{r} -->
+<!-- res(data_yield$N_spike_m2) -->
+<!-- graph(data_yield$N_spike_m2) -->
+<!-- ``` -->
+
+<!-- There is an impact of the N_spike_m² on the yield that is significant. Furthermore this variable is the first one to fix in the wheat developpement (tillering). In D condition, less tillering that can be explain by the water balance analysis. Indeed the tillering takes place in mars april when appears the first sign of stress in D condition (careful,the difference of water supply with R condition is not that important compared tomay and july) -->
+
+<!-- ### Is there an impact of the N_kernel/spike on the yield. Knowing that it is the second step in the cycle development and it is mainly related to the tillering, Yield~mean_N_kernel -->
+
+<!-- ```{r} -->
+<!-- res(data_yield$mean_N_kernel) -->
+<!-- graph(data_yield$mean_N_kernel) -->
+<!-- ``` -->
+
+<!-- There is no significant effect of the N_kernel/spike on the Yield variation between D and R condition. It is possible that the reduction of tillering in D condition exceed the ressources limitation to provide the same amount of kernel /spike in both Hydro_condition (Compensation between the yield components) -->
+
+<!-- ### Is there an impact of the N_kernel_m2 on the yield? -->
+
+<!-- ```{r} -->
+<!-- res(data_yield$N_kernel_m2) -->
+<!-- graph(data_yield$N_kernel_m2) -->
+<!-- ``` -->
+
+<!-- There is an impact of the Nkernel_m²on the yield. In R condition, the N_kernel_m² is higher that could be related to the Nspike_m² (see following analysis) -->
+
+<!-- ## After the flowering, the vegetative development is over and the last thing that could affect the yield is the kernel's growth. Is there a relation between the TKW and the yield variation between the 2 hydro condition? Yield~PMG -->
+
+<!-- ```{r} -->
+<!-- res(data_yield$PMG) -->
+<!-- graph(data_yield$PMG) -->
+<!-- ``` -->
+
+<!-- The PMG has no significant impact on the yield variation whereas the water supply differences increased between the D and R condition. (from may to july) So how can we explain that a little variation of the water supply impact that much the tillering but not the filling of the kernel? Compensation also?  -->
+
+
+<!-- We studied the 4 components of the yield. It seems that the N_spike_m², the N_kernel_m² have a significant impact on the yield variation according the 2 hydro_conditions. It seems that the PMG and the N_kernel/spike don't differ in both condition. Is it possible that this absence of impact is due to the reduction of the tillers during the tillering that allow sufficient ressources to less N of kernel/m² and allow to maintain the same N_kernel_spike and the same PMG (there is a variation but it is not significantly explaining the yield) in both condition? -->
+<!-- For this we may analyse the correlation between those components of the yield -->
+
+# Relation between the yield components
+
+
+## Function graphical and regression
+
+```{r}
+graphcor<- function(x,y){
+  graph<-ggplot(data_yield, aes(x=y, y=x,col=Hydro_condition))+
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+  return(graph)
+}
+
+rescor<-function(x,y){ 
+  res<-aov(x ~ Hydro_condition + y + Hydro_condition*y, data=data_yield)%>%
+  summary
+  return(res)  }
+```
+ 
+### Is there a relation between the N_spike_m² and the N_kernel_m²? (quite logical juste to be sure)
+
+```{r}
+rescor(data_yield$N_kernel_m2,data_yield$N_spike_m2)
+graphcor(data_yield$N_kernel_m2,data_yield$N_spike_m2)
+
+#coefficient de correlation
+cor(data_yield$N_kernel_m2,data_yield$N_spike_m2, use = "complete.obs")
+```
+
+On a une forte correlation entre Nspike_m² and N_kernel_m² the more the N_spike_m² is the more the N_kernel_m² is, in both condition. (quite logical)
+
+### Is there a relation between the mean_N_kernel per spike and the N_kernel_m²? (quite logical juste to be sure)
+
+```{r}
+rescor(data_yield$N_kernel_m2,data_yield$mean_N_kernel)
+graphcor(data_yield$N_kernel_m2,data_yield$mean_N_kernel)
+
+```
+
+On a une forte correlation entre mean_N_kernel and N_kernel_m² the more the mean_N_kernel is the more the N_kernel_m² is, in both condition. (quite logical)
+
+### Is there a relation N_kernel_m2 and N_spike_m2 and mean_N_kernel per spike? (again quite a logical asumption)
+
+```{r}
+aov(N_kernel_m2 ~ N_spike_m2 * mean_N_kernel * Hydro_condition, data=data_yield)%>%
+  summary
+```
+
+The number of spike_m2 have a bigger impact on the N_kernel_m2 than the N_kernel/spike. So the variation of the N_kernel/m² observed is due to the reduction of the tillering in D and not a variation during the heading.
+
+### Is there a relation between the mean_N_kernel per spike and the N_spike/m² ?(that could enlighten the compesation process?)
+
+```{r}
+rescor(data_yield$mean_N_kernel,data_yield$N_spike_m2)
+graphcor(data_yield$mean_N_kernel,data_yield$N_spike_m2)
+
+```
+
+ N_spike_m² and mean_N_kernel are positively correlated and the N_spike_m² have a significant impact on the mean_N_kernel. So the more spike /m², the higher is the number of kernel /spike in D condition. In R it seems that the  number of kernel didn't change with the N_spike/m² (euuuh ça m'aurait arrangé l'inverse...)
+
+
+
+### The PMG is the last step of the yield. There is no vegetative development, just kernel's growth, PMG acording to the mean_N_kernel/spike ?
+
+
+```{r}
+rescor(data_yield$PMG,data_yield$mean_N_kernel)
+graphcor(data_yield$PMG,data_yield$mean_N_kernel)
+```
+
+There is an impact of the mean_N_kernel on the PMG. In D condition, the PMG decrease when the number of kernels/spike increase (logical) in stress condition the water supply is not enough to assure quantity and quality whereas in R condition the PMG can increase with the Nkernels (whereas we are still in stress codition but less stressful than D). Put how could it be possible that the N_kernel/spike is the same but the PMG change?? 
+
+ 
+
+### Analysis of the PMG acording to the N_kernel/m²
+```{r}
+rescor(data_yield$PMG,data_yield$N_kernel_m2)
+graphcor(data_yield$PMG,data_yield$N_kernel_m2)
+
+```
+
+No effect of the Nkernel_m² on the PMG itself, but an effect of the Interaction with the hydrocondition. Indeed in D condition if the N_kernel_m² increase, the PMG decrease. Whereas in R condition this not the case (seems to have no variation or slightly in the reverse way).In D condition there is not enough water supply as in R to allow Kernel growth in may/july (stress condition)and so less PMG.
+
+
+*HYPOTHESIS* First stress sign in avril during the tillering, then compensation of the water supply. That is by reducingthe number of tillers there is sufficient ressources to maintain the heading (Nkernel/spike) in both condition. However the water supply continue to decrease along may and july, so during the filling of the kernel. And maybe it is this stress gap between R and D that explain the variation of the PMG.
+
+We observed in the boxplot a real difference of the N_spikelet along the 2 conditions, is this variable is related to the components of the yield
+
+## The spikelet case...
+
+### N_spikelet/spike~N_spike/m²
+
+```{r}
+rescor(data_yield$mean_N_spikelet,data_yield$N_spike_m2)
+graphcor(data_yield$mean_N_spikelet,data_yield$N_spike_m2)
+```
+The more N_spike/m², the more N_spikelet/spike. So quite logically we can link the spikelet reduction on D condition to the reduction of the tillering during the tillering.(pourquoi?)
+
+### N_spikelet and mean_N_kernel per spike
+```{r}
+rescor(data_yield$mean_N_spikelet,data_yield$mean_N_kernel)
+graphcor(data_yield$mean_N_spikelet,data_yield$mean_N_kernel)
+```
+
+the more spikelet, the more Nkernel/spike in both condition
+
+### Nspikelet model
+```{r}
+aov(mean_N_spikelet~mean_N_kernel*N_spike_m2*Hydro_condition, data_yield)%>%
+  summary
+```
+
+# ANOVA Yield, Could we determine the impact of each yield components on the yield in this experiment? 
+
+```{r}
+#anova avec interaction
+anova<-aov(Yield_Cor ~  Hydro_condition * N_spike_m2 * N_kernel_m2   * mean_N_kernel * PMG , data=data_yield)
+summary(anova)
+#estime le meilleur modèle
+step(anova)
+
+#Final model
+resfinal<-aov(Yield_Cor ~ Hydro_condition + N_spike_m2 + N_kernel_m2 + 
+    mean_N_kernel + PMG + Hydro_condition:N_spike_m2 + Hydro_condition:N_kernel_m2 + 
+    N_spike_m2:N_kernel_m2 + N_spike_m2:mean_N_kernel + N_kernel_m2:mean_N_kernel + 
+    Hydro_condition:PMG + N_kernel_m2:PMG + Hydro_condition:N_spike_m2:N_kernel_m2 + 
+    Hydro_condition:N_kernel_m2:PMG, data = data_yield)
+
+summary(resfinal)
+
+```
+
+
+```{r}
+#Anova avec interaction en condition Drought
+data_yield_d<-data_yield%>%
+  filter(Hydro_condition=="D")
+
+
+anova_d<-aov(Yield_Cor ~ N_spike_m2 * N_kernel_m2   * mean_N_kernel * PMG , data=data_yield_d)
+summary(anova_d)
+
+#estime le meilleur modèle
+step(anova_d)
+
+
+#anova avec interaction en condition Rainy
+data_yield_r<-data_yield%>%
+  filter(Hydro_condition=="R")
+
+
+anova_r<-aov(Yield_Cor ~ N_spike_m2 * N_kernel_m2   * mean_N_kernel * PMG , data=data_yield_r)
+summary(anova_r)
+#estime le meilleur modèle
+step(anova_r)
+
+```
+
+
+The final model is the one that is the most explaining the yield. There is a lot of component but mainly the components that impact the most the yield is the N_spike_m², the hydro_condtion and the mean_N_kernel. the N_kernel_m² was really correlated to the N_spike_m² and the mean_N
+
+```{r}
+#indépendance des residus, elles sont centrées sur 0
+plot(anova,1)  
+
+# normalité des residus
+plot(anova,2)
+```
+
+
+
+
+
+# The height analysis
+
+We are in mixture varieties and one of our hypothesis is to analysed if there is an impact of the height on the yield ? and what could be the biological mechanisism that explain this impact? the boxplot revealed a difference in the lenght of the stems but not of the spike between drought and rainy condition.An hypothesis is maybe beyond D condition the density is less due to the reduction of the tillering. So there is no need to use the plant plasticity for height to grow a lot to reach the light.If it is true, we expect that the V(H) in D condition will be lower than in R condition. 
+
+## What is the variance of the height in each plot?is there small and high plant in each plot, is there a height diversity?
+
+```{r}
+ggplot(data_yield , aes(x=V_H_plant,col=Hydro_condition))+
+  geom_histogram()
+```
+
+Indeed according to the variance there is a diversity of H among the plot. However it did not differ between D and R.
+
+```{r}
+res(data_yield$mean_L_stem)
+graph(data_yield$mean_L_stem)
+```
+
+D : the heighier the stem is the less is the yield. That the ressources are given to the vegetative development and not the reproduction. (allocation of ressources)
+R: the heigher plants are the more productive! Competition? (since it is normally a more dense plot -->more tillers)
+
+To justify this assumption we want to know if the heigher have the more kernel/spike?
+
+```{r}
+res(data_yield$mean_H_spike)
+graph(data_yield$mean_H_spike)
+```
+
+## Is the higher plants are the more productive?
+
+```{r}
+data_sample<-read.csv2("~/JRL/jrl/2_Farmer_seeds/2_Yield_data/sample_data/sample_data_outlier.csv")
+```
+
+```{r}
+res_H<-aov(N_kernel~Hydro_condition*H_plant,data_sample)%>%
+  summary
+
+ggplot(data_sample, aes(x=H_plant, y=N_kernel,col=Hydro_condition))+
+  geom_point() +
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE)
+```
+
+The heigher the plant is the heigher is the N_kernel/spike. However it is the case in both condition so the hypothesis of competition in R condition is not verified (*WHY heigher "pente" in D?*)
+
+<!-- ## Yield~mean_Fertilty_rate -->
+<!-- ```{r} -->
+<!-- res(data_yield$mean_Fertility_rate) -->
+<!-- graph(data_yield$mean_Fertility_rate) -->
+<!-- ``` -->
+
+
+
+<!-- #MATRICE DE CORRELATION -->
+<!-- ```{r} -->
+<!-- #1=rainy, 2=drought -->
+<!-- data_cor<-data_yield%>% -->
+<!--   select(-Bloc,-plot_ident)%>% -->
+<!--   mutate(Hydro_condition = ifelse(Hydro_condition=="R", 1, 2))%>% -->
+<!--   filter(!is.na(mean_W_kernel)) -->
+<!-- MCOR<-cor(data_cor) -->
+<!-- corrplot(MCOR,type="upper") -->
+<!-- ``` -->
+
+<!-- #Observation graphique -->
+<!-- ```{r} -->
+<!-- #en boxplot -->
+
+<!-- ggplot( data_yield, aes(x=Hydro_condition, y=Yield_Cor, fill=Hydro_condition)) + -->
+<!--     geom_boxplot() + -->
+<!--     scale_fill_viridis(discrete = TRUE, alpha=0.6) + -->
+<!--   #pour rajouter les obs indiv -->
+<!--     geom_jitter(color="black", size=0.4, alpha=0.9) + -->
+<!--     theme( -->
+<!--       legend.position="none", -->
+<!--       plot.title = element_text(size=11) -->
+<!--     ) + -->
+<!--     ggtitle("boxplot effet de l'E") -->
+
+
+<!-- ``` -->
